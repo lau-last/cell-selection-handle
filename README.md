@@ -1,57 +1,141 @@
-# CellSelectionHandle Class Documentation
+# CellSelectionHandle
 
-## Introduction
-The `CellSelectionHandle` class provides functionality for selecting table cells within a web page using keyboard and mouse interactions. It supports toggling the selection state of cells and handles complex selection patterns, such as selecting multiple cells while holding the Control (Ctrl) or Meta key.
+A JavaScript class for managing the selection of table cells with support for multi-selection using the Control (or Meta) key.
 
-## Configuration
-To instantiate a `CellSelectionHandle` object, a configuration object must be passed with the following properties:
+## Table of Contents
 
-- **elementSelector**: CSS selector for the table cell elements (required).
-- **className**: The class name to be toggled on selected cells. Defaults to 'selected' if not provided.
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Methods](#methods)
+- [Events](#events)
+- [Example](#example)
+- [License](#license)
 
-## Methods
-### constructor(config)
-Initializes the `CellSelectionHandle` with the specified configuration. Sets up event listeners for keyboard and mouse interactions to manage cell selections based on the user input.
+## Installation
 
-### handleEventsListeners()
-Sets up the necessary event listeners.
+Clone the repository or download the `CellSelectionHandle` class file to your project.
 
-### onKeydown()
-Listener for key down events to enable selection mode.
-
-### onKeyup()
-Listener for key up events to disable selection mode.
-
-### onClick()
-Handles click events for selecting or deselecting cells.
-
-### selectionchange()
-Manages changes in selection within the document.
-
-### getArrayOfSelectedCells(baseNode, extentNode)
-Calculates and returns an array of cell identifiers that fall within the range defined by `baseNode` and `extentNode`. Handles both row and column spanning to ensure all relevant cells are included in the selection.
-
-### removeSelectedFromElements()
-Removes the selection class from all elements that are currently marked as selected. This method is typically called to clear selections when the Control or Meta key is released.
-
-## Event Handling
-Event listeners are set up to handle various user actions:
-- **keydown and keyup**: Detect when the Control or Meta key is pressed or released to enable or disable multi-selection mode.
-- **click**: Manages the addition or removal of the selection class on cell elements when clicked, depending on whether the Control or Meta key is pressed.
-- **selectionchange**: Monitors changes in text selection within the table and adjusts cell selections accordingly.
-
-## Example Usage
-
-```javascript
-const cellSelectionConfig = {
-    elementSelector: '.myTable td',
-    className: 'selected'
-};
-
-const myCellSelection = new CellSelectionHandle(cellSelectionConfig);
-
-// Now, cells can be selected by clicking while holding the Control or Meta key.
-// Selected cells will have the 'selected' class toggled.
+```sh
+git clone https://github.com/yourusername/CellSelectionHandle.git
 ```
 
-This documentation and configuration setup allows developers to easily integrate and use the `CellSelectionHandle` class in projects that require interactive table cell selection.
+## Usage
+
+1. Import the `CellSelectionHandle` class into your project.
+
+    ```javascript
+    import CellSelectionHandle from './path/to/CellSelectionHandle';
+    ```
+
+2. Initialize the `CellSelectionHandle` with the required configuration.
+
+    ```javascript
+    const cellSelection = new CellSelectionHandle({
+        elementSelector: '.table-cell',
+        className: 'highlighted'
+    });
+    ```
+
+## Configuration
+
+The `CellSelectionHandle` class accepts a configuration object with the following properties:
+
+- **`elementSelector`** (string, required): The CSS selector to identify table cells.
+- **`className`** (string, optional): The CSS class name to be added to selected cells. Defaults to `'selected'`.
+
+## Methods
+
+### `handleEventsListeners()`
+
+Sets up event listeners for keydown, keyup, mousedown, mouseup, and selectionchange events.
+
+### `handleKeydown(event)`
+
+Handles the keydown event to detect when the Control or Meta key is pressed.
+
+### `handleKeyup(event)`
+
+Handles the keyup event to detect when the Control or Meta key is released.
+
+### `handleMouseDown()`
+
+Handles the mousedown event to add currently selected cells to the old selection if Control is pressed.
+
+### `handleMouseUp()`
+
+Handles the mouseup event to clear the old selection if Control is not pressed.
+
+### `handleSelectionChange()`
+
+Handles the selectionchange event to update the cell selection.
+
+### `getSelectedCells()`
+
+Retrieves the currently selected cells based on the selection range.
+
+### `getArrayOfSelectedCells(baseNode, extentNode)`
+
+Calculates the range of cells between the base and extent nodes.
+
+### `removeSelectedFromElements()`
+
+Removes the selected class from all elements matching the elementSelector.
+
+## Events
+
+The class listens to the following events to manage cell selection:
+
+- `keydown`
+- `keyup`
+- `mousedown`
+- `mouseup`
+- `selectionchange`
+
+## Example
+
+Here is an example of how to use the `CellSelectionHandle` class in a project:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cell Selection Example</title>
+    <style>
+        .highlighted {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td class="table-cell" data-number="1-1">1-1</td>
+            <td class="table-cell" data-number="1-2">1-2</td>
+        </tr>
+        <tr>
+            <td class="table-cell" data-number="2-1">2-1</td>
+            <td class="table-cell" data-number="2-2">2-2</td>
+        </tr>
+    </table>
+
+    <script type="module">
+        import CellSelectionHandle from './path/to/CellSelectionHandle.js';
+
+        const cellSelection = new CellSelectionHandle({
+            elementSelector: '.table-cell',
+            className: 'highlighted'
+        });
+    </script>
+</body>
+</html>
+```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+```
+
+Feel free to modify the example paths and repository link according to your project structure and GitHub repository URL. Let me know if you need any further adjustments!

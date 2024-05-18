@@ -1,102 +1,124 @@
 export default class CellSelectionHandle {
 
     /**
-     * @param config
-     * @param config.elementSelector
-     * @param config.className
+     * Constructs a new CellSelectionHandle instance.
+     *
+     * @param {Object} config - Configuration object for the CellSelectionHandle.
+     * @param {string} config.elementSelector - CSS selector to identify table cells.
+     * @param {string} [config.className='selected'] - CSS class name to be added to selected cells.
      */
     constructor(config = {}) {
-
-        // Validate and set default configuration parameters
-        if (config.elementSelector === undefined) {
-            throw new Error('element is required');
+        // Validate the elementSelector config parameter and throw an error if it is not a string.
+        if (typeof config.elementSelector !== 'string') {
+            throw new Error('elementSelector is required and must be a string');
         }
-
-        if (config.className === undefined) {
-            config.className = 'selected';
-        }
-
-        // Assign properties based on configuration
+        // Assign elementSelector from config.
         this.elementSelector = config.elementSelector;
-        this.className = config.className;
+        // Assign className from config or default to 'selected'.
+        this.className = typeof config.className === 'string' ? config.className : 'selected';
+        // Initialize ctrl to false, indicating whether the Control key is pressed.
         this.ctrl = false;
-
-        this.handleEventsListeners(event);
-
-
+        // Initialize oldSelection as an empty set to store previously selected cells.
+        this.oldSelection = new Set();
+        // Set up event listeners for various user interactions.
+        this.handleEventsListeners();
     }
 
-    // Handle all events
+    /**
+     * Sets up event listeners for keydown, keyup, mousedown, mouseup, and selectionchange events.
+     */
     handleEventsListeners() {
-        this.onKeydown(event);
-        this.onKeyup(event);
-        this.onClick(event);
-        this.selectionchange(event);
+        document.addEventListener('keydown', this.handleKeydown.bind(this));
+        document.addEventListener('keyup', this.handleKeyup.bind(this));
+        document.addEventListener('mousedown', this.handleMouseDown.bind(this));
+        document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+        document.addEventListener('selectionchange', this.handleSelectionChange.bind(this));
     }
 
-    // Add event listeners for control key and click events
-    onKeydown(event) {
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Control' || event.key === 'Meta') {
-                this.ctrl = true;
+    /**
+     * Handles the keydown event to detect when the Control or Meta key is pressed.
+     *
+     * @param {KeyboardEvent} event - The keyboard event object.
+     */
+    handleKeydown(event) {
+        if (event.key === 'Control' || event.key === 'Meta') {
+            this.ctrl = true;
+            this.oldSelection = new Set([...this.oldSelection, ...this.getSelectedCells()]);
+        }
+    }
+
+    /**
+     * Handles the keyup event to detect when the Control or Meta key is released.
+     *
+     * @param {KeyboardEvent} event - The keyboard event object.
+     */
+    handleKeyup(event) {
+        if (event.key === 'Control' || event.key === 'Meta') {
+            this.ctrl = false;
+        }
+    }
+
+    /**
+     * Handles the mousedown event to add currently selected cells to the old selection if Control is pressed.
+     */
+    handleMouseDown() {
+        if (this.ctrl) {
+            this.oldSelection = new Set([...this.oldSelection, ...this.getSelectedCells()]);
+        }
+    }
+
+    /**
+     * Handles the mouseup event to clear the old selection if Control is not pressed.
+     */
+    handleMouseUp() {
+        if (!this.ctrl) {
+            this.oldSelection.clear();
+        }
+    }
+
+    /**
+     * Handles the selectionchange event to update the cell selection.
+     */
+    handleSelectionChange() {
+        this.removeSelectedFromElements();
+        let cellsSelected = this.getSelectedCells();
+        if (this.ctrl) {
+            cellsSelected = new Set([...this.oldSelection, ...cellsSelected]);
+        }
+        cellsSelected.forEach((cellNumber) => {
+            let cell = document.querySelector(`${this.elementSelector}[data-number="${cellNumber}"]`);
+            if (cell && cell.tagName === 'TD') {
+                cell.classList.add(this.className);
             }
         });
     }
 
-    onKeyup(event) {
-        document.addEventListener('keyup', (event) => {
-            if (event.key === 'Control' || event.key === 'Meta') {
-                this.ctrl = false;
-            }
-        });
-
+    /**
+     * Retrieves the currently selected cells based on the selection range.
+     *
+     * @returns {string[]} Array of selected cell identifiers.
+     */
+    getSelectedCells() {
+        let selection = window.getSelection();
+        if (!selection || !selection.baseNode || !selection.extentNode) {
+            return [];
+        }
+        let baseNode = selection.baseNode.dataset ? selection.baseNode.dataset.number : null;
+        let extentNode = selection.extentNode.dataset ? selection.extentNode.dataset.number : null;
+        if (!baseNode || !extentNode) {
+            return [];
+        }
+        return this.getArrayOfSelectedCells(baseNode, extentNode);
     }
 
-    // Add event listeners for click events
-    onClick(event) {
-        document.addEventListener('click', (event) => {
-            if (this.ctrl === true && event.target.classList.contains(this.className)) {
-                event.target.classList.remove(this.className);
-            } else if (this.ctrl === true && !event.target.classList.contains(this.className)) {
-                event.target.classList.add(this.className);
-            }
-        });
-    }
-
-    // Add event listener for selection change
-    selectionchange() {
-        document.addEventListener("selectionchange", (event) => {
-            let selection = window.getSelection();
-            let baseNode = selection.baseNode.dataset.number;
-            let extentNode = selection.extentNode.dataset.number;
-            let cellsSelected = this.getArrayOfSelectedCells(baseNode, extentNode)
-
-            if (!selection) {
-                return;
-            }
-
-            if (!selection.baseNode || !selection.extentNode) {
-                return;
-            }
-
-            if (selection.baseNode.nodeName !== 'TD') {
-                return;
-            }
-
-            if (this.ctrl === false) {
-                this.removeSelectedFromElements();
-            }
-
-            cellsSelected.forEach((cellNumber) => {
-                let cellSelected = document.querySelector(`${this.elementSelector}[data-number="${cellNumber}"]`);
-                cellSelected.classList.add(this.className);
-            });
-        });
-    }
-
-    // Return array of selected cells
+    /**
+     * Calculates the range of cells between the base and extent nodes.
+     *
+     * @param {string} baseNode - The base node identifier (e.g., '1-1').
+     * @param {string} extentNode - The extent node identifier (e.g., '3-3').
+     * @returns {string[]} Array of cell identifiers within the specified range.
+     */
     getArrayOfSelectedCells(baseNode, extentNode) {
-
         let [abscissaBaseNode, ordinateBaseNode] = baseNode.split('-').map(Number);
         let [abscissaExtentNode, ordinateExtentNode] = extentNode.split('-').map(Number);
 
@@ -107,21 +129,21 @@ export default class CellSelectionHandle {
             [ordinateBaseNode, ordinateExtentNode] = [ordinateExtentNode, ordinateBaseNode];
         }
 
-        let cellNumber = [];
+        let cellNumbers = [];
         for (let a = abscissaBaseNode; a <= abscissaExtentNode; a++) {
             for (let o = ordinateBaseNode; o <= ordinateExtentNode; o++) {
-                cellNumber.push(`${a}-${o}`);
+                cellNumbers.push(`${a}-${o}`);
             }
         }
-        return cellNumber;
+        return cellNumbers;
     }
 
-    // Remove the selected class from all elements
+    /**
+     * Removes the selected class from all elements matching the elementSelector.
+     */
     removeSelectedFromElements() {
         document.querySelectorAll(`${this.elementSelector}[data-number]`).forEach(element => {
             element.classList.remove(this.className);
         });
     }
-
-
 }
