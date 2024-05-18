@@ -133,9 +133,17 @@ Here is an example of how to use the `CellSelectionHandle` class in a project:
 </html>
 ```
 
-## License
+## Development
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+To contribute to this project, follow these steps:
+
+1. Fork the repository.
+2. Create a new branch: `git checkout -b feature-branch`.
+3. Make your changes and commit them: `git commit -m 'Add some feature'`.
+4. Push to the branch: `git push origin feature-branch`.
+5. Submit a pull request.
+
+## Licence
 ```
-
-Feel free to modify the example paths and repository link according to your project structure and GitHub repository URL. Let me know if you need any further adjustments!
+Feel free to copy, modify the example paths and repository link according to your project structure and GitHub repository URL. Let me know if you need any further adjustments!
+```
