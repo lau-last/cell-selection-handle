@@ -24,6 +24,15 @@ const selectionConfig = {
 };
 const cellSelector = new CellSelectionHandle(selectionConfig);
 ```
+## CSS
+If no custom class is specified, the default class ‘.selected’ will be used.
+Do not forget to add the following CSS class to your CSS file:
+
+```css
+.myCustomClass {
+    background-color: blue;
+}
+```
 
 ## Methods
 - `handleEventsListeners()`: Sets up the required event listeners.
