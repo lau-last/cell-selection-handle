@@ -26,7 +26,6 @@ export default class CellSelectionHandle {
         this.ctrl = false; // Tracks whether the Control key is pressed.
         this.mouseOnTable = false; // Tracks whether the mouse is over the table.
         this.oldSelection = new Set(); // Stores previously selected cells.
-
         // Initialize data attributes on table cells and set up event listeners.
         this.generateDataNumbers();
         this.handleEventsListeners();
@@ -103,6 +102,7 @@ export default class CellSelectionHandle {
     handleSelectionChange() {
         this.removeSelectedFromElements();
         let cellsSelected = this.getSelectedCells();
+
         // Apply or remove the selection class to/from each cell based on current selections.
         cellsSelected.forEach((cellNumber) => {
             let cell = document.querySelector(`td[data-number="${cellNumber}"]`);
@@ -117,15 +117,34 @@ export default class CellSelectionHandle {
      */
     getSelectedCells() {
         let selection = window.getSelection();
+
         if (!selection || !selection.baseNode || !selection.extentNode) {
             return [];
         }
-        let baseNode = selection.baseNode.dataset ? selection.baseNode.dataset.number : null;
-        let extentNode = selection.extentNode.dataset ? selection.extentNode.dataset.number : null;
-        if (!baseNode || !extentNode) {
+
+        let baseNode = selection.baseNode;
+        let extentNode = selection.extentNode;
+
+        // Check if baseNode and extentNode are TD elements
+        while (baseNode && baseNode.nodeName !== 'TD') {
+            baseNode = baseNode.parentNode;
+        }
+        while (extentNode && extentNode.nodeName !== 'TD') {
+            extentNode = extentNode.parentNode;
+        }
+
+        // If either of them is not a TD, return an empty array
+        if (!baseNode || !extentNode || baseNode.nodeName !== 'TD' || extentNode.nodeName !== 'TD') {
             return [];
         }
-        return this.getArrayOfSelectedCells(baseNode, extentNode);
+
+        let baseNumber = baseNode.dataset ? baseNode.dataset.number : null;
+        let extentNumber = extentNode.dataset ? extentNode.dataset.number : null;
+
+        if (!baseNumber || !extentNumber) {
+            return [];
+        }
+        return this.getArrayOfSelectedCells(baseNumber, extentNumber);
     }
 
     /**
